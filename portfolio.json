@@ -1,0 +1,28 @@
+{
+	"assets": [
+		{
+			"name": "VTI",
+			"price": 142.18,
+			"count": 20,
+			"alloc": 35
+		},
+		{
+			"name": "VEU",
+			"price": 49.48,
+			"count": 15,
+			"alloc": 15
+		},
+		{
+			"name": "BND",
+			"price": 79.99,
+			"count": 100,
+			"alloc": 50
+		},
+		{
+			"name": "USD",
+			"price": 1,
+			"count": 524,
+			"alloc": 0
+		}
+	]
+}

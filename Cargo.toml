@@ -1,0 +1,17 @@
+[package]
+name = "portfolio-rebalancer"
+version = "0.1.0"
+authors = ["Marco Grassi <marco.gra@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+termion = "1.5.1"
+serde_json = "1.0.38"
+clap = "2.32.0"
+serde = { version = "1.0.87", features = ["derive"] }
+failure = "0.1.5"
+
+[dependencies.tui]
+version = "0.4.0"
+default-features = false
+features = ['termion']
