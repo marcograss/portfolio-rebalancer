@@ -99,7 +99,7 @@ fn main() -> Result<(), failure::Error> {
 			        match app.tabs.index {
 			            0 =>  {
 			            	BarChart::default()
-		            	    .block(Block::default().title("Original Allocation").borders(Borders::ALL))
+		            	    .block(Block::default().title("Original Allocation (%)").borders(Borders::ALL))
 		            	    .data(&_original_alloc_data)
 		            	    .bar_width(5)
 		            	    .bar_gap(3)
@@ -107,7 +107,7 @@ fn main() -> Result<(), failure::Error> {
 		            	    .value_style(Style::default().bg(Color::Green).modifier(Modifier::Bold))
 		            	    .render(&mut f, allocations_chunks[0]);
 		            	    BarChart::default()
-	            	        .block(Block::default().title("New Allocation").borders(Borders::ALL))
+	            	        .block(Block::default().title("New Allocation (%)").borders(Borders::ALL))
 	            	        .data(&_target_alloc_data)
 	            	        .style(Style::default().fg(Color::Red))
 	            	        .bar_width(5)
