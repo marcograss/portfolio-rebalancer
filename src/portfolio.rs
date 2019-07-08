@@ -1,16 +1,19 @@
 use serde_json::{Result};
 use serde::{Deserialize};
 use std::fs;
+use rust_decimal_macros::*;
+use rust_decimal::Decimal;
+use num_traits::cast::ToPrimitive;
 
 #[derive(Debug, Clone)]
 #[derive(Deserialize)]
 pub struct Asset {
 	pub name: String,
-	pub price: f32,
-	pub count: u32,
-	pub alloc: f32,
+	pub price: Decimal,
+	pub count: Decimal,
+	pub alloc: Decimal,
 	#[serde(skip_deserializing)]
-	pub value: f32,
+	pub value: Decimal,
 }
 
 #[derive(Debug, Clone)]
@@ -18,7 +21,7 @@ pub struct Asset {
 pub struct Portfolio {
 	pub assets: Vec<Asset>,
 	#[serde(skip_deserializing)]
-	pub value: f32,
+	pub value: Decimal,
 }
 
 #[derive(Debug, Clone)]
@@ -38,32 +41,32 @@ pub struct Action {
 
 impl Portfolio {
 	fn is_target_allocation_sane(&self) -> bool {
-		let mut sum: f32 = 0.0;
+		let mut sum: Decimal = dec!(0.0);
 		for a in &self.assets {
 			sum += a.alloc;
 		}
-		return sum == 100.0;
+		return sum == dec!(100.0);
 	}
 	fn calculate_asset_values(&mut self) {
 		for a in &mut self.assets {
-			a.value = a.price * (a.count as f32);
+			a.value = a.price * (a.count);
 			self.value += a.value;
 		}
 	}
 
 	fn recalc_allocation(&mut self) {
 		for a in &mut self.assets {
-			a.alloc = (a.value/self.value)*100.0;
+			a.alloc = (a.value/self.value)*dec!(100.0);
 		}
 	}
 
 	pub fn rebalance(&self) -> Portfolio {
 		let mut target_portfolio = self.clone();
 		for a in &mut target_portfolio.assets {
-			a.count = ((target_portfolio.value*a.alloc/100.0)/a.price) as u32;
-			a.value = a.price * (a.count as f32);
+			a.count = (target_portfolio.value*a.alloc/dec!(100.0))/a.price;
+			a.value = a.price * a.count;
 		}
-		target_portfolio.value = 0.0;
+		target_portfolio.value = dec!(0.0);
 		for a in &target_portfolio.assets {
 			target_portfolio.value += a.value;
 		}
@@ -72,8 +75,8 @@ impl Portfolio {
 			for a in &mut target_portfolio.assets {
 				// TODO improve this to make it generic
 				if a.name == "USD" {
-					a.count = (self.value - target_portfolio.value) as u32;
-					a.value = a.price * (a.count as f32);
+					a.count = self.value - target_portfolio.value;
+					a.value = a.price * (a.count);
 					target_portfolio.value += a.value;
 					break;
 				}
@@ -89,16 +92,16 @@ impl Portfolio {
 			let a = &self.assets[i];
 			let b = &target_portfolio.assets[i];
 			assert!(a.name == b.name);
-			let diff: i32 = b.count as i32 - a.count as i32;
+			let diff: Decimal = b.count- a.count;
 			match diff {
-				d if d == 0 => {
+				d if d == dec!(0) => {
 					// Nothing
 				},
-				d if d > 0 => {
-					ret.push(Action{buysell: BuySell::Buy, amount: d as u32, name :a.name.clone()})
+				d if d > dec!(0) => {
+					ret.push(Action{buysell: BuySell::Buy, amount: d.to_u32().expect(&format!("cannot format {:?}", a)), name :a.name.clone()})
 				},
-				d if d < 0 => {
-					ret.push(Action{buysell: BuySell::Sell, amount: ((-d) as u32), name :a.name.clone()})
+				d if d < dec!(0) => {
+					ret.push(Action{buysell: BuySell::Sell, amount: (-d.to_i32().expect(&format!("cannot format {:?}", a))) as u32, name :a.name.clone()})
 				},
 				_ => {},
 			}
@@ -110,7 +113,7 @@ impl Portfolio {
 		self.recalc_allocation();
 		let mut display_data: Vec<(&str, u64)> = Vec::new();
 		for a in &self.assets {
-			display_data.push((&a.name, a.alloc as u64));
+			display_data.push((&a.name, a.alloc.to_u32().expect(&format!("cannot display {:?}", a)) as u64));
 		}
 		return display_data;
 	}
