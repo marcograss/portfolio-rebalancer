@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 termion = "1.5.1"
 serde_json = "1.0.38"
+json_comments = "0.2.0"
 clap = "2.32.0"
 serde = { version = "1.0.87", features = ["derive"] }
 failure = "0.1.5"

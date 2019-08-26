@@ -4,6 +4,8 @@ use std::fs;
 use rust_decimal_macros::*;
 use rust_decimal::Decimal;
 use num_traits::cast::ToPrimitive;
+use json_comments::StripComments;
+use std::io::Read;
 
 #[derive(Debug, Clone)]
 #[derive(Deserialize)]
@@ -125,7 +127,9 @@ pub fn load_portfolio(port_file: &str) -> std::result::Result<Portfolio, String>
 		return Err("Something went wrong reading the portfolio file".to_string());
 	}
 	let data = data.unwrap();
-	let v: Result<Portfolio> = serde_json::from_str(&data);
+	let mut stripped = String::new();
+	StripComments::new(data.as_bytes()).read_to_string(&mut stripped).unwrap();
+	let v: Result<Portfolio> = serde_json::from_str(&stripped);
 	match v {
 		Ok(mut p) => {
 			if !p.is_target_allocation_sane() {
