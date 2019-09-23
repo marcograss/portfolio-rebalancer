@@ -1,7 +1,8 @@
 [package]
 name = "portfolio-rebalancer"
-version = "0.1.0"
-authors = ["Marco Grassi <marco.gra@gmail.com>"]
+version = "0.2.0"
+authors = ["marcograss"]
+description = "Rebalance your stock portfolio to a target allocation"
 edition = "2018"
 
 [dependencies]

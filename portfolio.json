@@ -24,5 +24,7 @@
 			"count": 524,
 			"alloc": 0
 		}
-	]
+	],
+//comments now work
+	"donotsell": true
 }

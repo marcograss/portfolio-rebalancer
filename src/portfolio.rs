@@ -22,8 +22,12 @@ pub struct Asset {
 #[derive(Deserialize)]
 pub struct Portfolio {
 	pub assets: Vec<Asset>,
+	#[serde(default)]
+	pub donotsell: bool,
 	#[serde(skip_deserializing)]
 	pub value: Decimal,
+	#[serde(skip_deserializing)]
+	pub currency: Option<Asset>,
 }
 
 #[derive(Debug, Clone)]
@@ -41,6 +45,8 @@ pub struct Action {
 	pub name: String,
 }
 
+static CURRENCY: &str = "USD";
+
 impl Portfolio {
 	fn is_target_allocation_sane(&self) -> bool {
 		let mut sum: Decimal = dec!(0.0);
@@ -48,6 +54,18 @@ impl Portfolio {
 			sum += a.alloc;
 		}
 		return sum == dec!(100.0);
+	}
+	fn get_currency(&self) -> Option<Asset> {
+		for a in &self.assets {
+			if a.name == CURRENCY {
+				return Some(a.clone());
+			}
+		}
+		return None;
+	}
+
+	fn has_currency(&self) -> bool {
+		self.get_currency().is_some()
 	}
 	fn calculate_asset_values(&mut self) {
 		for a in &mut self.assets {
@@ -76,13 +94,32 @@ impl Portfolio {
 		if self.value > target_portfolio.value {
 			for a in &mut target_portfolio.assets {
 				// TODO improve this to make it generic
-				if a.name == "USD" {
+				if a.name == CURRENCY {
 					a.count = self.value - target_portfolio.value;
 					a.value = a.price * (a.count);
 					target_portfolio.value += a.value;
 					break;
 				}
 			}
+		}
+		target_portfolio.recalc_allocation();
+		target_portfolio
+	}
+
+	pub fn add_without_selling(&self) -> Portfolio {
+		let mut target_portfolio = self.clone();
+		let currency = self.get_currency().unwrap();
+		for a in &mut target_portfolio.assets {
+			a.count = a.count + ((currency.value*a.alloc/dec!(100.0))/a.price);
+			a.value = a.price * a.count;
+			if a.name == CURRENCY {
+				a.count = dec!(0.0);
+				a.value = dec!(0.0);
+			}
+		}
+		target_portfolio.value = dec!(0.0);
+		for a in &target_portfolio.assets {
+			target_portfolio.value += a.value;
 		}
 		target_portfolio.recalc_allocation();
 		target_portfolio
@@ -134,6 +171,9 @@ pub fn load_portfolio(port_file: &str) -> std::result::Result<Portfolio, String>
 		Ok(mut p) => {
 			if !p.is_target_allocation_sane() {
 				return Err("Your portfolio target allocation sum is not 100%".to_string());
+			}
+			if !p.has_currency() {
+				return Err(format!("Your portfolio doesn't have a {} asset", CURRENCY))
 			}
 			p.calculate_asset_values();
 			return Ok(p);

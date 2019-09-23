@@ -38,10 +38,10 @@ fn get_actions_to_display(actions: &Vec<Action>) -> Vec<Text> {
 }
 
 fn main() -> Result<(), failure::Error> {
-	let matches = App::new("portfolio-rebalancer")
+	let matches = App::new(env!("CARGO_PKG_NAME"))
 		.version(env!("CARGO_PKG_VERSION"))
-		.author("marcograss")
-		.about("Rebalance your stock portfolio to a target allocation")
+		.author(env!("CARGO_PKG_AUTHORS"))
+		.about(env!("CARGO_PKG_DESCRIPTION"))
 		.arg(Arg::with_name("portfolio-file").required(true).index(1))
 		.get_matches();
 	let portfolio_file = matches.value_of("portfolio-file").unwrap();
@@ -50,7 +50,11 @@ fn main() -> Result<(), failure::Error> {
 	match load_res {
 		Ok(mut _original_portfolio) => {
 			// println!("Original {:?}", _original_portfolio);
-			let mut _target_portfolio = _original_portfolio.rebalance();
+			let mut _target_portfolio = if _original_portfolio.donotsell {
+				_original_portfolio.add_without_selling()
+			} else {
+				_original_portfolio.rebalance()
+			};
 			// println!("Rebalanced {:?}", _target_portfolio);
 
 			let _actions = _original_portfolio.get_actions(&_target_portfolio);
