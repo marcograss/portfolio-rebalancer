@@ -26,5 +26,5 @@
 		}
 	],
 //comments now work
-	"donotsell": true
+	"donotsell": false
 }
