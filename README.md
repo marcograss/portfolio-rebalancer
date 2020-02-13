@@ -4,7 +4,7 @@ portfolio-rebalancer is a simple command line tool with UI to rebalance your sto
 
 edit `portfolio.json` with your target allocation and your assets
 
-then run the tool `cargo run portfolio.json`
+then run the tool `cargo run -- portfolio.json`
 
 one tab will show the original allocation and the result
 
