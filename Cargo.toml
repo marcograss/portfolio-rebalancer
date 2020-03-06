@@ -15,7 +15,6 @@ failure = "0.1.5"
 rust_decimal = "1.0.1"
 rust_decimal_macros = "1.0.1"
 num-traits = "0.2.8"
-quote = "=1.0.2"
 
 [dependencies.tui]
 version = "0.4.0"
