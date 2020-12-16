@@ -48,13 +48,19 @@ pub struct Action {
 static CURRENCY: &str = "USD";
 
 impl Portfolio {
-	fn is_target_allocation_sane(&self) -> bool {
+
+	fn get_allocation_sum(&self) -> Decimal {
 		let mut sum: Decimal = dec!(0.0);
 		for a in &self.assets {
 			sum += a.alloc;
 		}
-		return sum == dec!(100.0);
+		return sum
 	}
+
+	fn is_target_allocation_sane(&self) -> bool {
+		return self.get_allocation_sum() == dec!(100.0);
+	}
+
 	fn get_currency(&self) -> Option<Asset> {
 		for a in &self.assets {
 			if a.name == CURRENCY {
@@ -67,6 +73,7 @@ impl Portfolio {
 	fn has_currency(&self) -> bool {
 		self.get_currency().is_some()
 	}
+
 	fn calculate_asset_values(&mut self) {
 		for a in &mut self.assets {
 			a.value = a.price * (a.count);
@@ -170,7 +177,7 @@ pub fn load_portfolio(port_file: &str) -> std::result::Result<Portfolio, String>
 	match v {
 		Ok(mut p) => {
 			if !p.is_target_allocation_sane() {
-				return Err("Your portfolio target allocation sum is not 100%".to_string());
+				return Err(format!("Your portfolio target allocation sum is not 100%, it's {:?}%", p.get_allocation_sum()));
 			}
 			if !p.has_currency() {
 				return Err(format!("Your portfolio doesn't have a {} asset", CURRENCY))
