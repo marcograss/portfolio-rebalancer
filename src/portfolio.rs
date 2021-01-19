@@ -43,6 +43,7 @@ pub struct Action {
 	pub buysell: BuySell,
 	pub amount: u32,
 	pub name: String,
+	pub transaction_value: Decimal,
 }
 
 static CURRENCY: &str = "USD";
@@ -139,15 +140,16 @@ impl Portfolio {
 			let b = &target_portfolio.assets[i];
 			assert!(a.name == b.name);
 			let diff: Decimal = b.count- a.count;
+			let transaction_value: Decimal = (diff * a.price).abs();
 			match diff {
 				d if d == dec!(0) => {
 					// Nothing
 				},
 				d if d > dec!(0) => {
-					ret.push(Action{buysell: BuySell::Buy, amount: d.to_u32().expect(&format!("cannot format {:?}", a)), name :a.name.clone()})
+					ret.push(Action{buysell: BuySell::Buy, amount: d.to_u32().expect(&format!("cannot format {:?}", a)), name :a.name.clone(), transaction_value: transaction_value})
 				},
 				d if d < dec!(0) => {
-					ret.push(Action{buysell: BuySell::Sell, amount: (-d.to_i32().expect(&format!("cannot format {:?}", a))) as u32, name :a.name.clone()})
+					ret.push(Action{buysell: BuySell::Sell, amount: (-d.to_i32().expect(&format!("cannot format {:?}", a))) as u32, name :a.name.clone(), transaction_value: transaction_value})
 				},
 				_ => {},
 			}

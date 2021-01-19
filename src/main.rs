@@ -27,10 +27,10 @@ fn get_actions_to_display(actions: &Vec<Action>) -> Vec<Text> {
 	for a in actions {
 		match a.buysell {
 			BuySell::Buy => {
-				ret.push(Text::styled(format!("{} {} {}\n", "BUY", a.amount, a.name), Style::default().fg(Color::Red)))
+				ret.push(Text::styled(format!("{} {} {} -{:.2}$\n", "BUY", a.amount, a.name, a.transaction_value), Style::default().fg(Color::Red)))
 			},
 			BuySell::Sell => {
-				ret.push(Text::styled(format!("{} {} {}\n", "SELL", a.amount, a.name), Style::default().fg(Color::Green)))
+				ret.push(Text::styled(format!("{} {} {} +{:.2}$\n", "SELL", a.amount, a.name, a.transaction_value), Style::default().fg(Color::Green)))
 			}
 		}
 	}
