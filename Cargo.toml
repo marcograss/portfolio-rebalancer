@@ -17,6 +17,6 @@ num-traits = "0.2.8"
 anyhow = "1.0.61"
 
 [dependencies.tui]
-version = "0.8.0"
+version = "0.18.0"
 default-features = false
 features = ['termion']
