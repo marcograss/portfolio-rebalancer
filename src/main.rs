@@ -45,7 +45,7 @@ fn get_actions_to_display(actions: &[Action]) -> Vec<Text> {
     ret
 }
 
-fn main() -> Result<(), failure::Error> {
+fn main() -> anyhow::Result<()> {
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
@@ -122,7 +122,7 @@ fn main() -> Result<(), failure::Error> {
                                 .bar_gap(3)
                                 .style(Style::default().fg(Color::Green))
                                 .value_style(
-                                    Style::default().bg(Color::Green).modifier(Modifier::Bold),
+                                    Style::default().bg(Color::Green).modifier(Modifier::BOLD),
                                 )
                                 .render(&mut f, allocations_chunks[0]);
                             BarChart::default()
@@ -137,14 +137,14 @@ fn main() -> Result<(), failure::Error> {
                                 .bar_gap(3)
                                 .value_style(Style::default().bg(Color::Red))
                                 .label_style(
-                                    Style::default().fg(Color::Cyan).modifier(Modifier::Italic),
+                                    Style::default().fg(Color::Cyan).modifier(Modifier::ITALIC),
                                 )
                                 .render(&mut f, allocations_chunks[1]);
                         }
                         1 => {
                             let block = Block::default()
                                 .borders(Borders::ALL)
-                                .title_style(Style::default().modifier(Modifier::Bold));
+                                .title_style(Style::default().modifier(Modifier::BOLD));
                             Paragraph::new(_display_actions.iter())
                                 .block(block)
                                 .alignment(Alignment::Left)
