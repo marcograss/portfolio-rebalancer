@@ -14,7 +14,7 @@ serde = { version = "1.0.87", features = ["derive"] }
 rust_decimal = "1.0.1"
 rust_decimal_macros = "1.0.1"
 num-traits = "0.2.8"
-anyhow = "1.0.61"
+anyhow = "1.0.62"
 
 [dependencies.tui]
 version = "0.8.0"
