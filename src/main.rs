@@ -9,7 +9,8 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{BarChart, Block, Borders, Paragraph, Tabs, Text, Widget};
+use tui::text::{Span, Spans};
+use tui::widgets::{BarChart, Block, Borders, Paragraph, Tabs};
 use tui::Terminal;
 
 mod portfolio;
@@ -22,24 +23,24 @@ struct TuiApp<'a> {
     tabs: TabsState<'a>,
 }
 
-fn get_actions_to_display(actions: &[Action]) -> Vec<Text> {
+fn get_actions_to_display(actions: &[Action]) -> Vec<Spans> {
     let mut ret = Vec::new();
     for a in actions {
         match a.buysell {
-            BuySell::Buy => ret.push(Text::styled(
+            BuySell::Buy => ret.push(Spans::from(Span::styled(
                 format!(
                     "{} {} {} -{:.2}$\n",
                     "BUY", a.amount, a.name, a.transaction_value
                 ),
                 Style::default().fg(Color::Red),
-            )),
-            BuySell::Sell => ret.push(Text::styled(
+            ))),
+            BuySell::Sell => ret.push(Spans::from(Span::styled(
                 format!(
                     "{} {} {} +{:.2}$\n",
                     "SELL", a.amount, a.name, a.transaction_value
                 ),
                 Style::default().fg(Color::Green),
-            )),
+            ))),
         }
     }
     ret
@@ -88,20 +89,19 @@ fn main() -> anyhow::Result<()> {
 
             // Main loop
             loop {
-                terminal.draw(|mut f| {
+                terminal.draw(|f| {
                     let size = f.size();
                     let chunks = Layout::default()
                         .direction(Direction::Vertical)
                         .margin(0)
                         .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
                         .split(size);
-                    Tabs::default()
+                    let t = Tabs::new(app.tabs.titles.iter().cloned().map(Spans::from).collect())
                         .block(Block::default().borders(Borders::ALL).title("Tabs"))
-                        .titles(&app.tabs.titles)
                         .select(app.tabs.index)
                         .style(Style::default().fg(Color::Cyan))
-                        .highlight_style(Style::default().fg(Color::Yellow))
-                        .render(&mut f, chunks[0]);
+                        .highlight_style(Style::default().fg(Color::Yellow));
+                    f.render_widget(t, chunks[0]);
                     let allocations_chunks = Layout::default()
                         .direction(Direction::Vertical)
                         .margin(2)
@@ -111,7 +111,7 @@ fn main() -> anyhow::Result<()> {
                         .split(chunks[1]);
                     match app.tabs.index {
                         0 => {
-                            BarChart::default()
+                            let b1 = BarChart::default()
                                 .block(
                                     Block::default()
                                         .title("Original Allocation (%)")
@@ -122,10 +122,12 @@ fn main() -> anyhow::Result<()> {
                                 .bar_gap(3)
                                 .style(Style::default().fg(Color::Green))
                                 .value_style(
-                                    Style::default().bg(Color::Green).modifier(Modifier::BOLD),
-                                )
-                                .render(&mut f, allocations_chunks[0]);
-                            BarChart::default()
+                                    Style::default()
+                                        .bg(Color::White)
+                                        .add_modifier(Modifier::BOLD),
+                                );
+                            f.render_widget(b1, allocations_chunks[0]);
+                            let b2 = BarChart::default()
                                 .block(
                                     Block::default()
                                         .title("New Allocation (%)")
@@ -135,20 +137,20 @@ fn main() -> anyhow::Result<()> {
                                 .style(Style::default().fg(Color::Red))
                                 .bar_width(5)
                                 .bar_gap(3)
-                                .value_style(Style::default().bg(Color::Red))
+                                .value_style(Style::default().bg(Color::White))
                                 .label_style(
-                                    Style::default().fg(Color::Cyan).modifier(Modifier::ITALIC),
-                                )
-                                .render(&mut f, allocations_chunks[1]);
+                                    Style::default()
+                                        .fg(Color::Cyan)
+                                        .add_modifier(Modifier::ITALIC),
+                                );
+                            f.render_widget(b2, allocations_chunks[1]);
                         }
                         1 => {
-                            let block = Block::default()
-                                .borders(Borders::ALL)
-                                .title_style(Style::default().modifier(Modifier::BOLD));
-                            Paragraph::new(_display_actions.iter())
+                            let block = Block::default().borders(Borders::ALL);
+                            let p = Paragraph::new(_display_actions.clone())
                                 .block(block)
-                                .alignment(Alignment::Left)
-                                .render(&mut f, chunks[1]);
+                                .alignment(Alignment::Left);
+                            f.render_widget(p, chunks[1]);
                         }
                         _ => {}
                     }
