@@ -1,7 +1,7 @@
 use json_comments::StripComments;
 use num_traits::cast::ToPrimitive;
 use rust_decimal::Decimal;
-use rust_decimal_macros::*;
+use rust_decimal_macros::dec;
 use serde::Deserialize;
 use serde_json::Result;
 use std::fs;
@@ -169,16 +169,18 @@ impl Portfolio {
         for a in &self.assets {
             display_data.push((
                 &a.name,
-                a.alloc
-                    .to_u32()
-                    .unwrap_or_else(|| panic!("cannot display {:?}", a)) as u64,
+                u64::from(
+                    a.alloc
+                        .to_u32()
+                        .unwrap_or_else(|| panic!("cannot display {:?}", a)),
+                ),
             ));
         }
         display_data
     }
 }
 
-pub fn load_portfolio(port_file: &str) -> std::result::Result<Portfolio, String> {
+pub fn load_portfolio_from_file(port_file: &str) -> std::result::Result<Portfolio, String> {
     let data = fs::read_to_string(port_file);
     if data.is_err() {
         return Err("Something went wrong reading the portfolio file".to_string());

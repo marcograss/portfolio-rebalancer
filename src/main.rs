@@ -55,23 +55,23 @@ fn main() -> anyhow::Result<()> {
         .get_matches();
     let portfolio_file = matches.value_of("portfolio-file").unwrap();
 
-    let load_res = portfolio::load_portfolio(portfolio_file);
+    let load_res = portfolio::load_portfolio_from_file(portfolio_file);
     match load_res {
-        Ok(mut _original_portfolio) => {
+        Ok(mut original_portfolio) => {
             // println!("Original {:?}", _original_portfolio);
-            let mut _target_portfolio = if _original_portfolio.donotsell {
-                _original_portfolio.add_without_selling()
+            let mut target_portfolio = if original_portfolio.donotsell {
+                original_portfolio.add_without_selling()
             } else {
-                _original_portfolio.rebalance()
+                original_portfolio.rebalance()
             };
             // println!("Rebalanced {:?}", _target_portfolio);
 
-            let _actions = _original_portfolio.get_actions(&_target_portfolio);
+            let actions = original_portfolio.get_actions(&target_portfolio);
             // println!("Actions {:?}", _actions);
-            let _display_actions = get_actions_to_display(&_actions);
+            let display_actions = get_actions_to_display(&actions);
 
-            let _original_alloc_data: Vec<(&str, u64)> = _original_portfolio.get_display_data();
-            let _target_alloc_data: Vec<(&str, u64)> = _target_portfolio.get_display_data();
+            let original_alloc_data: Vec<(&str, u64)> = original_portfolio.get_display_data();
+            let target_alloc_data: Vec<(&str, u64)> = target_portfolio.get_display_data();
 
             let stdout = io::stdout().into_raw_mode()?;
             let stdout = MouseTerminal::from(stdout);
@@ -96,7 +96,7 @@ fn main() -> anyhow::Result<()> {
                         .margin(0)
                         .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
                         .split(size);
-                    let t = Tabs::new(app.tabs.titles.iter().cloned().map(Spans::from).collect())
+                    let t = Tabs::new(app.tabs.titles.iter().copied().map(Spans::from).collect())
                         .block(Block::default().borders(Borders::ALL).title("Tabs"))
                         .select(app.tabs.index)
                         .style(Style::default().fg(Color::Cyan))
@@ -117,7 +117,7 @@ fn main() -> anyhow::Result<()> {
                                         .title("Original Allocation (%)")
                                         .borders(Borders::ALL),
                                 )
-                                .data(&_original_alloc_data)
+                                .data(&original_alloc_data)
                                 .bar_width(5)
                                 .bar_gap(3)
                                 .style(Style::default().fg(Color::Green))
@@ -133,7 +133,7 @@ fn main() -> anyhow::Result<()> {
                                         .title("New Allocation (%)")
                                         .borders(Borders::ALL),
                                 )
-                                .data(&_target_alloc_data)
+                                .data(&target_alloc_data)
                                 .style(Style::default().fg(Color::Red))
                                 .bar_width(5)
                                 .bar_gap(3)
@@ -147,7 +147,7 @@ fn main() -> anyhow::Result<()> {
                         }
                         1 => {
                             let block = Block::default().borders(Borders::ALL);
-                            let p = Paragraph::new(_display_actions.clone())
+                            let p = Paragraph::new(display_actions.clone())
                                 .block(block)
                                 .alignment(Alignment::Left);
                             f.render_widget(p, chunks[1]);
