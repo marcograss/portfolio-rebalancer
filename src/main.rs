@@ -1,6 +1,6 @@
 use std::io;
 
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use portfolio::{Action, BuySell};
 use termion::event::Key;
 use termion::input::MouseTerminal;
@@ -47,13 +47,13 @@ fn get_actions_to_display(actions: &[Action]) -> Vec<Spans> {
 }
 
 fn main() -> anyhow::Result<()> {
-    let matches = App::new(env!("CARGO_PKG_NAME"))
+    let matches = Command::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
-        .arg(Arg::with_name("portfolio-file").required(true).index(1))
+        .arg(Arg::new("portfolio-file").required(true).index(1))
         .get_matches();
-    let portfolio_file = matches.value_of("portfolio-file").unwrap();
+    let portfolio_file = matches.get_one::<String>("portfolio-file").unwrap();
 
     let load_res = portfolio::load_portfolio_from_file(portfolio_file);
     match load_res {

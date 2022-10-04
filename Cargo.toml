@@ -1,22 +1,22 @@
 [package]
-name = "portfolio-rebalancer"
-version = "0.2.0"
 authors = ["marcograss"]
 description = "Rebalance your stock portfolio to a target allocation"
 edition = "2018"
+name = "portfolio-rebalancer"
+version = "0.2.1"
 
 [dependencies]
-termion = "1.5.1"
-serde_json = "1.0.85"
-json_comments = "0.2.0"
-clap = "3.2.22"
-serde = { version = "1.0.145", features = ["derive"] }
-rust_decimal = "1.0.1"
-rust_decimal_macros = "1.0.1"
-num-traits = "0.2.8"
 anyhow = "1.0.65"
+clap = "4.0.9"
+json_comments = "0.2.1"
+num-traits = "0.2.15"
+rust_decimal = "1.26.1"
+rust_decimal_macros = "1.26.1"
+serde = {version = "1.0.145", features = ["derive"]}
+serde_json = "1.0.85"
+termion = "1.5.6"
 
 [dependencies.tui]
-version = "0.19.0"
 default-features = false
 features = ['termion']
+version = "0.19.0"
