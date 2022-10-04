@@ -1,7 +1,7 @@
 [package]
 authors = ["marcograss"]
 description = "Rebalance your stock portfolio to a target allocation"
-edition = "2018"
+edition = "2021"
 name = "portfolio-rebalancer"
 version = "0.2.1"
 
