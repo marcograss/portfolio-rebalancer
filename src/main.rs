@@ -5,7 +5,7 @@ use portfolio::{Action, BuySell};
 use termion::event::Key;
 use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
+use termion::screen::IntoAlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
@@ -75,7 +75,7 @@ fn main() -> anyhow::Result<()> {
 
             let stdout = io::stdout().into_raw_mode()?;
             let stdout = MouseTerminal::from(stdout);
-            let stdout = AlternateScreen::from(stdout);
+            let stdout = stdout.into_alternate_screen()?;
             let backend = TermionBackend::new(stdout);
             let mut terminal = Terminal::new(backend)?;
             terminal.hide_cursor()?;

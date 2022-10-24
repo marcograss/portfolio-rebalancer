@@ -3,7 +3,7 @@ authors = ["marcograss"]
 description = "Rebalance your stock portfolio to a target allocation"
 edition = "2021"
 name = "portfolio-rebalancer"
-version = "0.2.1"
+version = "0.2.2"
 
 [dependencies]
 anyhow = "1.0.66"
@@ -14,7 +14,7 @@ rust_decimal = "1.26.1"
 rust_decimal_macros = "1.26.1"
 serde = {version = "1.0.147", features = ["derive"]}
 serde_json = "1.0.87"
-termion = "1.5.6"
+termion = "2.0.1"
 
 [dependencies.tui]
 default-features = false
