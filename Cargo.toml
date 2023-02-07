@@ -6,7 +6,7 @@ name = "portfolio-rebalancer"
 version = "0.2.2"
 
 [dependencies]
-anyhow = "1.0.68"
+anyhow = "1.0.69"
 clap = "4.1.4"
 json_comments = "0.2.1"
 num-traits = "0.2.15"
