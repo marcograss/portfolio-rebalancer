@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use json_comments::StripComments;
 use num_traits::cast::ToPrimitive;
 use rust_decimal::Decimal;
@@ -175,10 +176,10 @@ impl Portfolio {
     }
 }
 
-pub fn load_portfolio_from_file(port_file: &str) -> std::result::Result<Portfolio, String> {
+pub fn load_portfolio_from_file(port_file: &str) -> anyhow::Result<Portfolio> {
     let data = fs::read_to_string(port_file);
     if data.is_err() {
-        return Err("Something went wrong reading the portfolio file".to_string());
+        return Err(anyhow!("Something went wrong reading the portfolio file"));
     }
     let data = data.unwrap();
     let mut stripped = String::new();
@@ -189,17 +190,17 @@ pub fn load_portfolio_from_file(port_file: &str) -> std::result::Result<Portfoli
     match v {
         Ok(mut p) => {
             if !p.is_target_allocation_sane() {
-                return Err(format!(
+                return Err(anyhow!(
                     "Your portfolio target allocation sum is not 100%, it's {:?}%",
                     p.get_allocation_sum()
                 ));
             }
             if !p.has_currency() {
-                return Err(format!("Your portfolio doesn't have a {CURRENCY} asset"));
+                return Err(anyhow!("Your portfolio doesn't have a {CURRENCY} asset"));
             }
             p.calculate_asset_values();
             Ok(p)
         }
-        Err(e) => Err(format!("Error parsing the portfolio json {e:?}")),
+        Err(e) => Err(anyhow!("Error parsing the portfolio json {e:?}")),
     }
 }

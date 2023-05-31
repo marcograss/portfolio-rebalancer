@@ -55,120 +55,111 @@ fn main() -> anyhow::Result<()> {
         .get_matches();
     let portfolio_file = matches.get_one::<String>("portfolio-file").unwrap();
 
-    let load_res = portfolio::load_portfolio_from_file(portfolio_file);
-    match load_res {
-        Ok(mut original_portfolio) => {
-            // println!("Original {:?}", _original_portfolio);
-            let mut target_portfolio = if original_portfolio.donotsell {
-                original_portfolio.add_without_selling()
-            } else {
-                original_portfolio.rebalance()
-            };
-            // println!("Rebalanced {:?}", _target_portfolio);
+    let mut original_portfolio = portfolio::load_portfolio_from_file(portfolio_file)?;
+    // println!("Original {:?}", _original_portfolio);
+    let mut target_portfolio = if original_portfolio.donotsell {
+        original_portfolio.add_without_selling()
+    } else {
+        original_portfolio.rebalance()
+    };
+    // println!("Rebalanced {:?}", _target_portfolio);
 
-            let actions = original_portfolio.get_actions(&target_portfolio);
-            // println!("Actions {:?}", _actions);
-            let display_actions = get_actions_to_display(&actions);
+    let actions = original_portfolio.get_actions(&target_portfolio);
+    // println!("Actions {:?}", _actions);
+    let display_actions = get_actions_to_display(&actions);
 
-            let original_alloc_data: Vec<(&str, u64)> = original_portfolio.get_display_data();
-            let target_alloc_data: Vec<(&str, u64)> = target_portfolio.get_display_data();
+    let original_alloc_data: Vec<(&str, u64)> = original_portfolio.get_display_data();
+    let target_alloc_data: Vec<(&str, u64)> = target_portfolio.get_display_data();
 
-            let stdout = io::stdout().into_raw_mode()?;
-            let stdout = MouseTerminal::from(stdout);
-            let stdout = stdout.into_alternate_screen()?;
-            let backend = TermionBackend::new(stdout);
-            let mut terminal = Terminal::new(backend)?;
-            terminal.hide_cursor()?;
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = stdout.into_alternate_screen()?;
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.hide_cursor()?;
 
-            let events = Events::new();
+    let events = Events::new();
 
-            // App
-            let mut app = TuiApp {
-                tabs: TabsState::new(vec!["Original/New Allocations", "Actions"]),
-            };
+    // App
+    let mut app = TuiApp {
+        tabs: TabsState::new(vec!["Original/New Allocations", "Actions"]),
+    };
 
-            // Main loop
-            loop {
-                terminal.draw(|f| {
-                    let size = f.size();
-                    let chunks = Layout::default()
-                        .direction(Direction::Vertical)
-                        .margin(0)
-                        .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-                        .split(size);
-                    let t = Tabs::new(app.tabs.titles.iter().copied().map(Line::from).collect())
-                        .block(Block::default().borders(Borders::ALL).title("Tabs"))
-                        .select(app.tabs.index)
-                        .style(Style::default().fg(Color::Cyan))
-                        .highlight_style(Style::default().fg(Color::Yellow));
-                    f.render_widget(t, chunks[0]);
-                    let allocations_chunks = Layout::default()
-                        .direction(Direction::Vertical)
-                        .margin(2)
-                        .constraints(
-                            [Constraint::Percentage(50), Constraint::Percentage(50)].as_ref(),
+    // Main loop
+    loop {
+        terminal.draw(|f| {
+            let size = f.size();
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(0)
+                .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
+                .split(size);
+            let t = Tabs::new(app.tabs.titles.iter().copied().map(Line::from).collect())
+                .block(Block::default().borders(Borders::ALL).title("Tabs"))
+                .select(app.tabs.index)
+                .style(Style::default().fg(Color::Cyan))
+                .highlight_style(Style::default().fg(Color::Yellow));
+            f.render_widget(t, chunks[0]);
+            let allocations_chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(2)
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .split(chunks[1]);
+            match app.tabs.index {
+                0 => {
+                    let b1 = BarChart::default()
+                        .block(
+                            Block::default()
+                                .title("Original Allocation (%)")
+                                .borders(Borders::ALL),
                         )
-                        .split(chunks[1]);
-                    match app.tabs.index {
-                        0 => {
-                            let b1 = BarChart::default()
-                                .block(
-                                    Block::default()
-                                        .title("Original Allocation (%)")
-                                        .borders(Borders::ALL),
-                                )
-                                .data(&original_alloc_data)
-                                .bar_width(5)
-                                .bar_gap(3)
-                                .style(Style::default().fg(Color::Green))
-                                .value_style(
-                                    Style::default()
-                                        .bg(Color::White)
-                                        .add_modifier(Modifier::BOLD),
-                                );
-                            f.render_widget(b1, allocations_chunks[0]);
-                            let b2 = BarChart::default()
-                                .block(
-                                    Block::default()
-                                        .title("New Allocation (%)")
-                                        .borders(Borders::ALL),
-                                )
-                                .data(&target_alloc_data)
-                                .style(Style::default().fg(Color::Red))
-                                .bar_width(5)
-                                .bar_gap(3)
-                                .value_style(Style::default().bg(Color::White))
-                                .label_style(
-                                    Style::default()
-                                        .fg(Color::Cyan)
-                                        .add_modifier(Modifier::ITALIC),
-                                );
-                            f.render_widget(b2, allocations_chunks[1]);
-                        }
-                        1 => {
-                            let block = Block::default().borders(Borders::ALL);
-                            let p = Paragraph::new(display_actions.clone())
-                                .block(block)
-                                .alignment(Alignment::Left);
-                            f.render_widget(p, chunks[1]);
-                        }
-                        _ => {}
-                    }
-                })?;
-                if let Event::Input(input) = events.next()? {
-                    match input {
-                        Key::Char('q') => {
-                            break;
-                        }
-                        Key::Right => app.tabs.next(),
-                        Key::Left => app.tabs.previous(),
-                        _ => {}
-                    }
+                        .data(&original_alloc_data)
+                        .bar_width(5)
+                        .bar_gap(3)
+                        .style(Style::default().fg(Color::Green))
+                        .value_style(
+                            Style::default()
+                                .bg(Color::White)
+                                .add_modifier(Modifier::BOLD),
+                        );
+                    f.render_widget(b1, allocations_chunks[0]);
+                    let b2 = BarChart::default()
+                        .block(
+                            Block::default()
+                                .title("New Allocation (%)")
+                                .borders(Borders::ALL),
+                        )
+                        .data(&target_alloc_data)
+                        .style(Style::default().fg(Color::Red))
+                        .bar_width(5)
+                        .bar_gap(3)
+                        .value_style(Style::default().bg(Color::White))
+                        .label_style(
+                            Style::default()
+                                .fg(Color::Cyan)
+                                .add_modifier(Modifier::ITALIC),
+                        );
+                    f.render_widget(b2, allocations_chunks[1]);
                 }
+                1 => {
+                    let block = Block::default().borders(Borders::ALL);
+                    let p = Paragraph::new(display_actions.clone())
+                        .block(block)
+                        .alignment(Alignment::Left);
+                    f.render_widget(p, chunks[1]);
+                }
+                _ => {}
             }
-        }
-        Err(e) => {
-            eprintln!("{e:?}");
+        })?;
+        if let Event::Input(input) = events.next()? {
+            match input {
+                Key::Char('q') => {
+                    break;
+                }
+                Key::Right => app.tabs.next(),
+                Key::Left => app.tabs.previous(),
+                _ => {}
+            }
         }
     }
 
