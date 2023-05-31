@@ -83,7 +83,7 @@ impl Portfolio {
         }
     }
 
-    pub fn rebalance(&self) -> Portfolio {
+    pub fn rebalance(&self) -> Self {
         let mut target_portfolio = self.clone();
         for a in &mut target_portfolio.assets {
             a.count = (target_portfolio.value * a.alloc / dec!(100.0)) / a.price;
@@ -109,7 +109,7 @@ impl Portfolio {
         target_portfolio
     }
 
-    pub fn add_without_selling(&self) -> Portfolio {
+    pub fn add_without_selling(&self) -> Self {
         let mut target_portfolio = self.clone();
         let currency = self.get_currency().unwrap();
         for a in &mut target_portfolio.assets {
@@ -128,7 +128,7 @@ impl Portfolio {
         target_portfolio
     }
 
-    pub fn get_actions(&self, target_portfolio: &Portfolio) -> Vec<Action> {
+    pub fn get_actions(&self, target_portfolio: &Self) -> Vec<Action> {
         let mut ret = Vec::new();
         for i in 0..self.assets.len() {
             let a = &self.assets[i];
@@ -142,18 +142,13 @@ impl Portfolio {
                 }
                 d if d > dec!(0) => ret.push(Action {
                     buysell: BuySell::Buy,
-                    amount: d
-                        .to_u32()
-                        .unwrap_or_else(|| panic!("cannot format {:?}", a)),
+                    amount: d.to_u32().unwrap_or_else(|| panic!("cannot format {a:?}")),
                     name: a.name.clone(),
                     transaction_value,
                 }),
                 d if d < dec!(0) => ret.push(Action {
                     buysell: BuySell::Sell,
-                    amount: (-d
-                        .to_i32()
-                        .unwrap_or_else(|| panic!("cannot format {:?}", a)))
-                        as u32,
+                    amount: (-d.to_i32().unwrap_or_else(|| panic!("cannot format {a:?}"))) as u32,
                     name: a.name.clone(),
                     transaction_value,
                 }),
@@ -172,7 +167,7 @@ impl Portfolio {
                 u64::from(
                     a.alloc
                         .to_u32()
-                        .unwrap_or_else(|| panic!("cannot display {:?}", a)),
+                        .unwrap_or_else(|| panic!("cannot display {a:?}")),
                 ),
             ));
         }
@@ -200,11 +195,11 @@ pub fn load_portfolio_from_file(port_file: &str) -> std::result::Result<Portfoli
                 ));
             }
             if !p.has_currency() {
-                return Err(format!("Your portfolio doesn't have a {} asset", CURRENCY));
+                return Err(format!("Your portfolio doesn't have a {CURRENCY} asset"));
             }
             p.calculate_asset_values();
             Ok(p)
         }
-        Err(e) => Err(format!("Error parsing the portfolio json {:?}", e)),
+        Err(e) => Err(format!("Error parsing the portfolio json {e:?}")),
     }
 }

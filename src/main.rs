@@ -168,7 +168,7 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Err(e) => {
-            eprintln!("{:?}", e);
+            eprintln!("{e:?}");
         }
     }
 
