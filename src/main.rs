@@ -9,7 +9,7 @@ use termion::screen::IntoAlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::text::{Span, Spans};
+use tui::text::{Line, Span};
 use tui::widgets::{BarChart, Block, Borders, Paragraph, Tabs};
 use tui::Terminal;
 
@@ -23,18 +23,18 @@ struct TuiApp<'a> {
     tabs: TabsState<'a>,
 }
 
-fn get_actions_to_display(actions: &[Action]) -> Vec<Spans> {
+fn get_actions_to_display(actions: &[Action]) -> Vec<Line> {
     let mut ret = Vec::new();
     for a in actions {
         match a.buysell {
-            BuySell::Buy => ret.push(Spans::from(Span::styled(
+            BuySell::Buy => ret.push(Line::from(Span::styled(
                 format!(
                     "{} {} {} -{:.2}$\n",
                     "BUY", a.amount, a.name, a.transaction_value
                 ),
                 Style::default().fg(Color::Red),
             ))),
-            BuySell::Sell => ret.push(Spans::from(Span::styled(
+            BuySell::Sell => ret.push(Line::from(Span::styled(
                 format!(
                     "{} {} {} +{:.2}$\n",
                     "SELL", a.amount, a.name, a.transaction_value
@@ -96,7 +96,7 @@ fn main() -> anyhow::Result<()> {
                         .margin(0)
                         .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
                         .split(size);
-                    let t = Tabs::new(app.tabs.titles.iter().copied().map(Spans::from).collect())
+                    let t = Tabs::new(app.tabs.titles.iter().copied().map(Line::from).collect())
                         .block(Block::default().borders(Borders::ALL).title("Tabs"))
                         .select(app.tabs.index)
                         .style(Style::default().fg(Color::Cyan))
