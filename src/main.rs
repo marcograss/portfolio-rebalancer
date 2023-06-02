@@ -46,31 +46,11 @@ fn get_actions_to_display(actions: &[Action]) -> Vec<Line> {
     ret
 }
 
-fn main() -> anyhow::Result<()> {
-    let matches = Command::new(env!("CARGO_PKG_NAME"))
-        .version(env!("CARGO_PKG_VERSION"))
-        .author(env!("CARGO_PKG_AUTHORS"))
-        .about(env!("CARGO_PKG_DESCRIPTION"))
-        .arg(Arg::new("portfolio-file").required(true).index(1))
-        .get_matches();
-    let portfolio_file = matches.get_one::<String>("portfolio-file").unwrap();
-
-    let mut original_portfolio = portfolio::load_portfolio_from_file(portfolio_file)?;
-    // println!("Original {:?}", _original_portfolio);
-    let mut target_portfolio = if original_portfolio.donotsell {
-        original_portfolio.add_without_selling()
-    } else {
-        original_portfolio.rebalance()
-    };
-    // println!("Rebalanced {:?}", _target_portfolio);
-
-    let actions = original_portfolio.get_actions(&target_portfolio);
-    // println!("Actions {:?}", _actions);
-    let display_actions = get_actions_to_display(&actions);
-
-    let original_alloc_data: Vec<(&str, u64)> = original_portfolio.get_display_data();
-    let target_alloc_data: Vec<(&str, u64)> = target_portfolio.get_display_data();
-
+fn display_ui(
+    original_alloc_data: &[(&str, u64)],
+    target_alloc_data: &[(&str, u64)],
+    display_actions: &[Line],
+) -> anyhow::Result<()> {
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = stdout.into_alternate_screen()?;
@@ -80,12 +60,10 @@ fn main() -> anyhow::Result<()> {
 
     let events = Events::new();
 
-    // App
     let mut app = TuiApp {
         tabs: TabsState::new(vec!["Original/New Allocations", "Actions"]),
     };
 
-    // Main loop
     loop {
         terminal.draw(|f| {
             let size = f.size();
@@ -113,7 +91,7 @@ fn main() -> anyhow::Result<()> {
                                 .title("Original Allocation (%)")
                                 .borders(Borders::ALL),
                         )
-                        .data(&original_alloc_data)
+                        .data(original_alloc_data)
                         .bar_width(5)
                         .bar_gap(3)
                         .style(Style::default().fg(Color::Green))
@@ -129,7 +107,7 @@ fn main() -> anyhow::Result<()> {
                                 .title("New Allocation (%)")
                                 .borders(Borders::ALL),
                         )
-                        .data(&target_alloc_data)
+                        .data(target_alloc_data)
                         .style(Style::default().fg(Color::Red))
                         .bar_width(5)
                         .bar_gap(3)
@@ -143,7 +121,7 @@ fn main() -> anyhow::Result<()> {
                 }
                 1 => {
                     let block = Block::default().borders(Borders::ALL);
-                    let p = Paragraph::new(display_actions.clone())
+                    let p = Paragraph::new(display_actions.to_owned())
                         .block(block)
                         .alignment(Alignment::Left);
                     f.render_widget(p, chunks[1]);
@@ -164,4 +142,29 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
+    let matches = Command::new(env!("CARGO_PKG_NAME"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .arg(Arg::new("portfolio-file").required(true).index(1))
+        .get_matches();
+    let portfolio_file = matches.get_one::<String>("portfolio-file").unwrap();
+
+    let mut original_portfolio = portfolio::load_portfolio_from_file(portfolio_file)?;
+    let mut target_portfolio = if original_portfolio.donotsell {
+        original_portfolio.add_without_selling()?
+    } else {
+        original_portfolio.rebalance()
+    };
+
+    let actions = original_portfolio.get_actions(&target_portfolio)?;
+    let display_actions = get_actions_to_display(&actions);
+
+    let original_alloc_data = original_portfolio.get_display_data()?;
+    let target_alloc_data = target_portfolio.get_display_data()?;
+
+    display_ui(&original_alloc_data, &target_alloc_data, &display_actions)
 }

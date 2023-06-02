@@ -110,9 +110,11 @@ impl Portfolio {
         target_portfolio
     }
 
-    pub fn add_without_selling(&self) -> Self {
+    pub fn add_without_selling(&self) -> anyhow::Result<Self> {
         let mut target_portfolio = self.clone();
-        let currency = self.get_currency().unwrap();
+        let currency = self
+            .get_currency()
+            .ok_or_else(|| anyhow!("cannot get currency"))?;
         for a in &mut target_portfolio.assets {
             a.count += (currency.value * a.alloc / dec!(100.0)) / a.price;
             a.value = a.price * a.count;
@@ -126,10 +128,10 @@ impl Portfolio {
             target_portfolio.value += a.value;
         }
         target_portfolio.recalc_allocation();
-        target_portfolio
+        Ok(target_portfolio)
     }
 
-    pub fn get_actions(&self, target_portfolio: &Self) -> Vec<Action> {
+    pub fn get_actions(&self, target_portfolio: &Self) -> anyhow::Result<Vec<Action>> {
         let mut ret = Vec::new();
         for i in 0..self.assets.len() {
             let a = &self.assets[i];
@@ -143,49 +145,45 @@ impl Portfolio {
                 }
                 d if d > dec!(0) => ret.push(Action {
                     buysell: BuySell::Buy,
-                    amount: d.to_u32().unwrap_or_else(|| panic!("cannot format {a:?}")),
+                    amount: d.to_u32().ok_or_else(|| anyhow!("cannot format {a:?}"))?,
                     name: a.name.clone(),
                     transaction_value,
                 }),
                 d if d < dec!(0) => ret.push(Action {
                     buysell: BuySell::Sell,
-                    amount: (-d.to_i32().unwrap_or_else(|| panic!("cannot format {a:?}"))) as u32,
+                    amount: u32::try_from(
+                        -d.to_i32().ok_or_else(|| anyhow!("cannot format {a:?}"))?,
+                    )?,
                     name: a.name.clone(),
                     transaction_value,
                 }),
                 _ => {}
             }
         }
-        ret
+        Ok(ret)
     }
 
-    pub fn get_display_data(&mut self) -> Vec<(&str, u64)> {
+    pub fn get_display_data(&mut self) -> anyhow::Result<Vec<(&str, u64)>> {
         self.recalc_allocation();
         let mut display_data: Vec<(&str, u64)> = Vec::new();
         for a in &self.assets {
             display_data.push((
                 &a.name,
-                u64::from(
+                u64::try_from(
                     a.alloc
                         .to_u32()
-                        .unwrap_or_else(|| panic!("cannot display {a:?}")),
-                ),
+                        .ok_or_else(|| anyhow!("cannot format {a:?}"))?,
+                )?,
             ));
         }
-        display_data
+        Ok(display_data)
     }
 }
 
 pub fn load_portfolio_from_file(port_file: &str) -> anyhow::Result<Portfolio> {
-    let data = fs::read_to_string(port_file);
-    if data.is_err() {
-        return Err(anyhow!("Something went wrong reading the portfolio file"));
-    }
-    let data = data.unwrap();
+    let data = fs::read_to_string(port_file)?;
     let mut stripped = String::new();
-    StripComments::new(data.as_bytes())
-        .read_to_string(&mut stripped)
-        .unwrap();
+    StripComments::new(data.as_bytes()).read_to_string(&mut stripped)?;
     let v: Result<Portfolio> = serde_json::from_str(&stripped);
     match v {
         Ok(mut p) => {
