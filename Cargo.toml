@@ -12,7 +12,7 @@ json_comments = "0.2.1"
 num-traits = "0.2.17"
 rust_decimal = "1.32.0"
 rust_decimal_macros = "1.32.0"
-serde = {version = "1.0.188", features = ["derive"]}
+serde = {version = "1.0.189", features = ["derive"]}
 serde_json = "1.0.107"
 termion = "2.0.1"
 
