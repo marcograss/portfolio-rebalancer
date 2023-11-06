@@ -14,7 +14,7 @@ rust_decimal = "1.32.0"
 rust_decimal_macros = "1.32.0"
 serde = {version = "1.0.190", features = ["derive"]}
 serde_json = "1.0.108"
-termion = "2.0.1"
+termion = "2.0.3"
 
 [dependencies.tui]
 package = "ratatui"
