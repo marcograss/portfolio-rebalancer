@@ -7,7 +7,7 @@ version = "0.2.2"
 
 [dependencies]
 anyhow = "1.0.99"
-clap = "4.5.45"
+clap = "4.5.46"
 json_comments = "0.2.2"
 num-traits = "0.2.19"
 rust_decimal = "1.37.2"
