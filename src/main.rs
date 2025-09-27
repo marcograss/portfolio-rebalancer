@@ -23,7 +23,7 @@ struct TuiApp<'a> {
     tabs: TabsState<'a>,
 }
 
-fn get_actions_to_display(actions: &[Action]) -> Vec<Line> {
+fn get_actions_to_display(actions: &[Action]) -> Vec<Line<'_>> {
     let mut ret = Vec::new();
     for a in actions {
         match a.buysell {
@@ -66,17 +66,24 @@ fn display_ui(
 
     loop {
         terminal.draw(|f| {
-            let size = f.size();
+            let size = f.area();
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(0)
                 .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
                 .split(size);
-            let t = Tabs::new(app.tabs.titles.iter().copied().map(Line::from).collect())
-                .block(Block::default().borders(Borders::ALL).title("Tabs"))
-                .select(app.tabs.index)
-                .style(Style::default().fg(Color::Cyan))
-                .highlight_style(Style::default().fg(Color::Yellow));
+            let t = Tabs::new(
+                app.tabs
+                    .titles
+                    .iter()
+                    .copied()
+                    .map(Line::from)
+                    .collect::<Vec<_>>(),
+            )
+            .block(Block::default().borders(Borders::ALL).title("Tabs"))
+            .select(app.tabs.index)
+            .style(Style::default().fg(Color::Cyan))
+            .highlight_style(Style::default().fg(Color::Yellow));
             f.render_widget(t, chunks[0]);
             let allocations_chunks = Layout::default()
                 .direction(Direction::Vertical)

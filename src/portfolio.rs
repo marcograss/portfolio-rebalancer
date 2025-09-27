@@ -25,8 +25,6 @@ pub struct Portfolio {
     pub donotsell: bool,
     #[serde(skip_deserializing)]
     pub value: Decimal,
-    #[serde(skip_deserializing)]
-    pub currency: Option<Asset>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -169,11 +167,11 @@ impl Portfolio {
         for a in &self.assets {
             display_data.push((
                 &a.name,
-                u64::try_from(
+                u64::from(
                     a.alloc
                         .to_u32()
                         .ok_or_else(|| anyhow!("cannot format {a:?}"))?,
-                )?,
+                ),
             ));
         }
         Ok(display_data)
