@@ -11,7 +11,7 @@ clap = "4.5.54"
 json_comments = "0.2.2"
 num-traits = "0.2.19"
 rust_decimal = "1.40.0"
-rust_decimal_macros = "1.39.0"
+rust_decimal_macros = "1.40.0"
 serde = {version = "1.0.228", features = ["derive"]}
 serde_json = "1.0.149"
 termion = "4.0.6"
