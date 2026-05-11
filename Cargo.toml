@@ -10,7 +10,7 @@ anyhow = "1.0.102"
 clap = "4.6.1"
 json_comments = "0.2.2"
 num-traits = "0.2.19"
-rust_decimal = "1.41.0"
+rust_decimal = "1.42.0"
 rust_decimal_macros = "1.40.0"
 serde = {version = "1.0.228", features = ["derive"]}
 serde_json = "1.0.149"
